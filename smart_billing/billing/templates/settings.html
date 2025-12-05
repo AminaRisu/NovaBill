@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Billing | Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:#fff8f0;
+    color:#333;
+    display:flex;
+  }
+
+  /* SIDEBAR */
+  .sidebar{
+    width:220px;
+    background:#fff3d6;
+    height:100vh;
+    padding:25px 20px;
+    position:fixed;
+    box-shadow:2px 0 8px rgba(0,0,0,.1);
+  }
+  .sidebar h2{
+    color:#ffb84d;
+    font-size:22px;
+    margin-bottom:25px;
+  }
+  .sidebar a{
+    display:block;
+    color:#333;
+    text-decoration:none;
+    padding:10px 8px;
+    margin:8px 0;
+    border-radius:6px;
+    font-weight:600;
+    transition:0.3s;
+  }
+  .sidebar a:hover{
+    background:#ffe4ad;
+    color:#d68800;
+  }
+
+  /* MAIN CONTENT */
+  .main{
+    margin-left:240px;
+    padding:30px;
+    flex:1;
+  }
+  h1{
+    color:#ffb84d;
+    margin-bottom:20px;
+  }
+
+  .settings-card{
+    background:#fff;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:18px;
+    box-shadow:0 3px 8px rgba(0,0,0,.08);
+  }
+  .settings-card h2{
+    color:#d68800;
+    margin-bottom:12px;
+    font-size:18px;
+  }
+  .settings-card input{
+    width:100%;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    margin-bottom:12px;
+    font-size:15px;
+  }
+
+  .btn{
+    background:#ffcc66;
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+    color:#333;
+  }
+  .btn:hover{
+    background:#ffb84d;
+  }
+
+  /* Danger button */
+  .danger{
+    background:#ff7b7b;
+    color:#fff;
+  }
+  .danger:hover{
+    background:#ff5252;
+  }
+
+</style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>Dashboard</h2>
+    <a href="billing.html">Billing</a>
+    <a href="items.html">Items</a>
+    <a href="reports.html">Reports</a>
+    <a href="settings.html">Settings</a>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <h1>Settings</h1>
+
+    <!-- Shop Name -->
+    <div class="settings-card">
+      <h2>Shop Name</h2>
+      <input id="shopName" placeholder="Enter shop name" />
+      <button class="btn" onclick="saveShopName()">Save</button>
+    </div>
+
+    <!-- About App -->
+    <div class="settings-card">
+      <h2>About This App</h2>
+      <p>Smart Billing System<br>
+      Version: 1.0<br>
+      Designed for easy billing & item management.</p>
+    </div>
+
+    <!-- Reset Data -->
+    <div class="settings-card">
+      <h2>Danger Zone</h2>
+      <button class="btn danger" onclick="resetAllData()">Reset All Data</button>
+    </div>
+
+  </div>
+
+<script>
+  function saveShopName(){
+    const name = document.getElementById('shopName').value.trim();
+    if(!name){
+      alert('Enter a valid name');
+      return;
+    }
+    localStorage.setItem('shopName', name);
+    alert('Shop name saved!');
+  }
+
+  function resetAllData(){
+    if(confirm("Are you sure? This will delete ALL bills, items, and current bill.")){
+      localStorage.removeItem('savedBills');
+      localStorage.removeItem('items');
+      localStorage.removeItem('currentBill');
+      alert("All data cleared.");
+    }
+  }
+
+  // Load saved shop name
+  window.onload = ()=>{
+    document.getElementById('shopName').value = localStorage.getItem('shopName') || "";
+  }
+</script>
+
+</body>
+</html>

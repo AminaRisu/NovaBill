@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Billing | Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+ body{margin:0;font-family:'Poppins',sans-serif;background:#f5f6fa;} 
+ .sidebar{position:fixed;left:0;top:0;width:240px;height:100%;background:#2f3640;color:white;padding-top:30px;} 
+ .sidebar h2{text-align:center;margin-bottom:20px;font-size:1.4rem;} 
+ .sidebar a{display:block;padding:15px 20px;color:white;text-decoration:none;font-size:1.1rem;margin:5px 0;} 
+ .sidebar a:hover{background:#353b48;} 
+ .content{margin-left:260px;padding:20px;} 
+ .card{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.1);} 
+ h1{font-size:1.8rem;font-weight:600;} 
+ table{width:100%;border-collapse:collapse;margin-top:20px;} 
+ th,td{padding:12px;border-bottom:1px solid #dcdde1;text-align:left;} 
+ th{background:#2f3640;color:white;} 
+ input{width:100%;padding:10px;margin:5px 0;border:1px solid #ccc;border-radius:5px;} 
+ button{padding:10px 15px;border:none;border-radius:5px;font-weight:500;cursor:pointer;} 
+ .add-btn{background:#44bd32;color:white;} 
+ .delete-btn{background:red;color:white;padding:6px 12px;border-radius:5px;} 
+ #suggestions{position:absolute;background:white;border:1px solid #ccc;width:85%;border-radius:5px;display:none;z-index:1000;max-height:150px;overflow-y:auto;} 
+ #suggestions div{padding:8px;cursor:pointer;} 
+ #suggestions div:hover{background:#eee;} 
+ .totals{text-align:right;margin-top:20px;font-size:1.2rem;font-weight:600;} 
+ .print-btn{background:#0097e6;color:white;margin-top:20px;} 
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+ <h2>Smart Billing</h2>
+    <a href="billing.html">🧾 Billing</a>
+    <a href="items.html">📦 Items</a>
+    <a href="reports.html">📊 Reports</a>
+    <a href="settings.html">⚙ Settings</a>
+</div>
+
+<div class="content">
+ <div class="card" id="billing">
+   <h1>Billing</h1>
+   <label>Customer Name</label>
+   <input id="customerName" placeholder="Enter customer name">
+
+   <label>Phone Number</label>
+   <input id="customerPhone" placeholder="Enter phone number">
+
+   <table>
+     <thead>
+       <tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th><th>Action</th></tr>
+     </thead>
+     <tbody id="billTable"></tbody>
+   </table>
+
+   <button class="add-btn" onclick="addRow()">+ Add Item</button>
+
+   <div class="totals" id="totalBox">Subtotal: ₹0 | GST: ₹0 | Grand Total: ₹0</div>
+   <button class="print-btn" onclick="window.print()">Print Bill</button>
+ </div>
+</div>
+
+<script>
+let itemsDB = JSON.parse(localStorage.getItem("itemsDB") || "[]");
+
+function addRow(){
+ let table = document.getElementById("billTable");
+ let row = document.createElement("tr");
+
+ row.innerHTML = `
+   <td style='position:relative;'>
+     <input class='item-input' onkeyup='suggestItems(this)' placeholder='Type item name'>
+     <div id='suggestions'></div>
+   </td>
+   <td><input type='number' value='1' min='1' onchange='updateRow(this)'></td>
+   <td><input type='number' value='0' onchange='updateRow(this)'></td>
+   <td class='row-total'>0</td>
+   <td><button class='delete-btn' onclick='removeRow(this)'>X</button></td>
+ `;
+
+ table.appendChild(row);
+}
+
+function removeRow(btn){
+ btn.parentElement.parentElement.remove();
+ updateTotals();
+}
+
+function suggestItems(input){
+ let text = input.value.toLowerCase();
+ let box = input.nextElementSibling;
+ box.innerHTML = "";
+ if(text === ""){ box.style.display="none"; return; }
+
+ let matches = itemsDB.filter(i => i.name.toLowerCase().includes(text));
+ if(matches.length === 0){ box.style.display="none"; return; }
+ box.style.display = "block";
+
+ matches.forEach(item => {
+   let div = document.createElement("div");
+   div.innerText = `${item.name} (₹${item.price})`;
+   div.onclick = () => {
+     input.value = item.name;
+     let priceInput = input.parentElement.parentElement.children[2].children[0];
+     priceInput.value = item.price;
+     box.style.display = "none";
+     updateRow(priceInput);
+   };
+   box.appendChild(div);
+ })
+}
+
+function updateRow(input){
+ let row = input.parentElement.parentElement;
+ let qty = Number(row.children[1].children[0].value);
+ let price = Number(row.children[2].children[0].value);
+ let total = qty * price;
+ row.children[3].innerText = total;
+ updateTotals();
+}
+
+function updateTotals(){
+ let subtotal = 0;
+ document.querySelectorAll('.row-total').forEach(t => subtotal += Number(t.innerText));
+ let gst = subtotal * 0.18;
+ let total = subtotal + gst;
+ document.getElementById('totalBox').innerText = `Subtotal: ₹${subtotal} | GST: ₹${gst.toFixed(2)} | Grand Total: ₹${total.toFixed(2)}`;
+}
+</script>
+
+</body>
+</html>

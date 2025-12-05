@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Smart Billing | Items</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    display:flex;
+    background:#fff8f0;
+    color:#333;
+  }
+
+  /* SIDEBAR */
+  .sidebar{
+    width:220px;
+    background:#fff3d6;
+    height:100vh;
+    padding:25px 20px;
+    box-shadow:2px 0 8px rgba(0,0,0,.1);
+    position:fixed;
+  }
+
+  .sidebar h2{
+    color:#ffb84d;
+    font-size:22px;
+    margin-bottom:25px;
+  }
+
+  .sidebar a{
+    display:block;
+    color:#333;
+    text-decoration:none;
+    padding:10px 8px;
+    margin:8px 0;
+    border-radius:6px;
+    font-weight:600;
+    transition:0.3s;
+  }
+
+  .sidebar a:hover{
+    background:#ffe4ad;
+    color:#d68800;
+  }
+
+  /* MAIN AREA */
+  .main{
+    margin-left:240px;
+    padding:30px;
+    flex:1;
+  }
+
+  h1{
+    color:#ffb84d;
+    margin-bottom:18px;
+  }
+
+  .add-box{
+    background:#fff;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:18px;
+    box-shadow:0 3px 8px rgba(0,0,0,.08);
+  }
+
+  .add-box h2{
+    color:#d68800;
+    margin-bottom:12px;
+  }
+
+  .add-box input{
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    margin-bottom:12px;
+    font-size:15px;
+  }
+
+  .btn{
+    background:#ffcc66;
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+  }
+
+  .btn:hover{
+    background:#ffb84d;
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:#fff;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:15px;
+    box-shadow:0 3px 8px rgba(0,0,0,.08);
+  }
+
+  th{
+    background:#ffe7b3;
+    padding:14px;
+    text-align:left;
+    color:#333;
+  }
+
+  td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+    font-size:14px;
+  }
+
+  tr:nth-child(even){
+    background:#fff8ee;
+  }
+
+  tr:hover{
+    background:#fff2d9;
+  }
+
+  .action-btn{
+    padding:6px 10px;
+    border-radius:6px;
+    cursor:pointer;
+    border:none;
+    font-size:13px;
+  }
+
+  .edit{
+    background:#8fd18f;
+  }
+
+  .delete{
+    background:#ff7b7b;
+    color:#fff;
+  }
+
+  .toast{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    background:#222;
+    color:#fff;
+    padding:12px 16px;
+    border-radius:8px;
+    display:none;
+  }
+</style>
+</head>
+
+<body>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>Dashboard</h2>
+    <a href="billing.html">Billing</a>
+    <a href="items.html">Items</a>
+    <a href="reports.html">Reports</a>
+    <a href="settings.html">Settings</a>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <h1>Items</h1>
+
+    <!-- ADD ITEM BOX -->
+    <div class="add-box">
+      <h2>Add New Item</h2>
+      <input id="itemName" placeholder="Item Name">
+      <input id="itemPrice" type="number" placeholder="Item Price">
+      <button class="btn" onclick="addItem()">Add Item</button>
+    </div>
+
+    <!-- ITEMS TABLE -->
+    <table>
+      <thead>
+        <tr>
+          <th>Sl No</th>
+          <th>Item Name</th>
+          <th>Price (₹)</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="itemsTable"></tbody>
+    </table>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  function showToast(msg){
+    const t=document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display='block';
+    setTimeout(()=> t.style.display='none', 2000);
+  }
+
+  function safeParse(key){
+    try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
+  }
+  
+  function safeSet(key,val){
+    localStorage.setItem(key, JSON.stringify(val));
+  }
+
+  let items = safeParse('items');
+
+  function renderItems(){
+    const tbody=document.getElementById('itemsTable');
+    tbody.innerHTML='';
+
+    items.forEach((it,idx)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td>${idx+1}</td>
+        <td>${it.name}</td>
+        <td>₹${Number(it.price).toFixed(2)}</td>
+        <td>
+          <button class="action-btn edit" onclick="editItem(${idx})">Edit</button>
+          <button class="action-btn delete" onclick="deleteItem(${idx})">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function addItem(){
+    const name=document.getElementById('itemName').value.trim();
+    const price=parseFloat(document.getElementById('itemPrice').value);
+
+    if(!name){ alert("Enter item name"); return; }
+    if(isNaN(price) || price<=0){ alert("Enter valid price"); return; }
+
+    items.push({name,price});
+    safeSet('items',items);
+
+    document.getElementById('itemName').value='';
+    document.getElementById('itemPrice').value='';
+    showToast("Item added!");
+    renderItems();
+  }
+
+  function deleteItem(i){
+    if(confirm("Delete this item?")){
+      items.splice(i,1);
+      safeSet('items',items);
+      renderItems();
+      showToast("Item removed");
+    }
+  }
+
+  function editItem(i){
+    const newName = prompt("Enter new name:", items[i].name);
+    if(newName===null || newName.trim()==="") return;
+
+    const newPrice = parseFloat(prompt("Enter new price:", items[i].price));
+    if(isNaN(newPrice) || newPrice<=0){
+      alert("Invalid price");
+      return;
+    }
+
+    items[i].name = newName.trim();
+    items[i].price = newPrice;
+    safeSet('items',items);
+    renderItems();
+    showToast("Item updated!");
+  }
+
+  renderItems();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smart Billing | Billing</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    display:flex;
+    background:#fff8f0;
+    color:#333
+  }
+
+  .sidebar{
+    width:220px;
+    background:#fff3d6;
+    height:100vh;
+    padding:25px 20px;
+    box-shadow:2px 0 8px rgba(0,0,0,.1);
+    position:fixed
+  }
+
+  .sidebar h2{
+    color:#ffb84d;
+    font-size:22px;
+    margin-bottom:25px
+  }
+
+  .sidebar a{
+    display:block;
+    color:#333;
+    text-decoration:none;
+    padding:10px 8px;
+    margin:8px 0;
+    border-radius:6px;
+    font-weight:600;
+    transition:0.3s
+  }
+
+  .sidebar a:hover{
+    background:#ffe4ad;
+    color:#d68800
+  }
+
+  .main{
+    margin-left:240px;
+    padding:30px;
+    flex:1
+  }
+
+  h1{
+    color:#ffb84d;
+    margin-bottom:18px
+  }
+
+  .customer-info{
+    display:flex;
+    gap:16px;
+    margin-bottom:14px;
+    flex-wrap:wrap
+  }
+
+  .customer-info input{
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    font-size:15px;
+    flex:1;
+    min-width:160px
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:#fff;
+    border-radius:10px;
+    overflow:hidden;
+    margin-bottom:12px;
+    box-shadow:0 3px 8px rgba(0,0,0,.08)
+  }
+
+  th{
+    background:#ffe7b3;
+    padding:14px;
+    text-align:left;
+    color:#333
+  }
+
+  td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+    font-size:14px
+  }
+
+  tr:nth-child(even){
+    background:#fff8ee
+  }
+
+  tr:hover{
+    background:#fff2d9
+  }
+
+  .grandTotal{
+    text-align:right;
+    font-weight:600;
+    color:#ff9900;
+    margin-bottom:12px;
+    font-size:16px
+  }
+
+  .inputs-row{
+    display:flex;
+    gap:25px;
+    align-items:center;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+  }
+
+  .inputs-row input{
+    padding:10px 80px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    font-size:15px
+  }
+  
+  .inputs-row input[type="number"]{
+    width:140px
+  }
+
+  .inputs-row button{
+    background:#ffcc66;
+    border:none;
+    padding:10px 58px;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s
+  }
+
+  .inputs-row button:hover{
+    background:#ffb84d
+  }
+
+  #suggestions{
+    position:absolute;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:6px;
+    max-height:180px;
+    overflow:auto;
+    z-index:100;
+    display:none
+  }
+
+  #suggestions div{
+    padding:8px;
+    cursor:pointer
+  }
+
+  #suggestions div:hover{
+    background:#ffe7b3
+  }
+
+  .buttons{
+    margin-top:8px
+  }
+
+  .buttons button{
+    background:#ffcc66;
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    margin-right:8px;
+    cursor:pointer;
+    font-weight:600;
+    transition:0.3s
+  }
+
+  .buttons button:hover{
+    background:#ffb84d
+  }
+
+  .toast{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    background:#222;
+    color:#fff;
+    padding:12px 16px;
+    border-radius:8px;
+    box-shadow:0 2px 8px rgba(0,0,0,.2);
+    display:none
+  }
+
+  .info-bar{
+    margin-top:10px;
+    color:#333;
+    background:#fff3d6;
+    padding:8px;
+    border-radius:6px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    flex-wrap:wrap
+  }
+
+  .debug{
+    font-size:13px;
+    color:#666
+  }
+
+  @media (max-width:700px){
+    .customer-info,.inputs-row{
+      flex-direction:column
+      }
+      .inputs-row input[type="number"]{
+        width:100%
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Dashboard</h2>
+    <a href="billing.html">Billing</a>
+    <a href="items.html">Items</a>
+    <a href="reports.html">Reports</a>
+    <a href="settings.html">Settings</a>
+  </div>
+
+  <div class="main">
+    <h1>Billing</h1>
+
+    <div class="customer-info">
+      <input id="customerName" placeholder="Customer Name" />
+      <input id="customerPhone" placeholder="Customer Phone" />
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Sl No</th><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+      </thead>
+      <tbody id="billList"></tbody>
+    </table>
+
+    <div class="grandTotal" id="grandTotal">Grand total: ₹0.00</div>
+
+    <div style="position:relative">
+      <div class="inputs-row">
+        <input id="itemInput" placeholder="Search Item" oninput="showSuggestions()" autocomplete="off" />
+        <input id="quantity" type="number" min="1" placeholder="Qty" />
+        <input id="price" type="number" readonly placeholder="Price" />
+        <button onclick="addItem()">Add</button>
+      </div>
+      <div id="suggestions"></div>
+    </div>
+
+    <div class="buttons">
+      <button onclick="saveBill()">Save Bill</button>
+      <button onclick="newBill()">New Bill</button>
+      <button onclick="debugShow()">Debug</button>
+    </div>
+
+    <div class="info-bar" id="savedInfo" style="display:none">
+      <div><strong>Saved bills:</strong> <span id="savedCount">0</span></div>
+      <div class="debug" id="lastSavedDebug"></div>
+      <div style="margin-left:auto"><button onclick="openReports()">Open Reports</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  function safeParse(key){ try{ return JSON.parse(localStorage.getItem(key) || 'null'); }catch(e){ return null; } }
+  function safeSet(key,val){ try{ localStorage.setItem(key, JSON.stringify(val)); return true;}catch(e){return false;} }
+
+  let itemsList = safeParse('items') || [];
+  let currentBill = safeParse('currentBill') || [];
+
+  const itemInput = document.getElementById('itemInput');
+  const suggestions = document.getElementById('suggestions');
+  const priceInput = document.getElementById('price');
+  const quantityInput = document.getElementById('quantity');
+
+  function showToast(msg,time=2000){
+    const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block';
+    setTimeout(()=> t.style.display='none', time);
+  }
+
+  function showSuggestions(){
+    const q=itemInput.value.trim().toLowerCase();
+    suggestions.innerHTML='';
+    if(!q){ suggestions.style.display='none'; return; }
+    const filtered = itemsList.filter(it=>it.name.toLowerCase().includes(q));
+    if(!filtered.length){ suggestions.style.display='none'; return; }
+    filtered.forEach(it=>{
+      const d=document.createElement('div');
+      d.textContent=`${it.name} — ₹${Number(it.price).toFixed(2)}`;
+      d.onclick=()=>selectItem(it);
+      suggestions.appendChild(d);
+    });
+    suggestions.style.display='block';
+  }
+
+  function selectItem(it){
+    itemInput.value = it.name;
+    priceInput.value = Number(it.price).toFixed(2);
+    suggestions.style.display='none';
+  }
+
+  function renderBill(){
+    const tbody=document.getElementById('billList'); tbody.innerHTML='';
+    let grand=0;
+    currentBill.forEach((it,idx)=>{
+      const rowTotal = Number(it.quantity)*Number(it.price);
+      grand += rowTotal;
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${idx+1}</td><td>${it.name}</td><td>${it.quantity}</td><td>₹${Number(it.price).toFixed(2)}</td><td>₹${rowTotal.toFixed(2)}</td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('grandTotal').textContent='Grand total: ₹'+grand.toFixed(2);
+  }
+
+  function addItem(){
+    const name=itemInput.value.trim(); const qty=parseInt(quantityInput.value); const price=parseFloat(priceInput.value);
+    if(!name){ alert('Select an item'); return; }
+    if(!qty || qty<=0){ alert('Enter valid quantity'); return; }
+    if(isNaN(price) || price<=0){ alert('Price invalid'); return; }
+    currentBill.push({name,quantity:qty,price:price});
+    safeSet('currentBill',currentBill);
+    itemInput.value=''; quantityInput.value=''; priceInput.value='';
+    renderBill();
+  }
+
+  function saveBill(){
+    if(!currentBill.length){ alert('No items to save'); return; }
+    const savedBills = safeParse('savedBills') || [];
+    const billObj={ customerName:document.getElementById('customerName').value||'Unknown', customerPhone:document.getElementById('customerPhone').value||'N/A', billData:currentBill, total:currentBill.reduce((s,i)=>s+(i.quantity*i.price),0), time:new Date().toLocaleString() };
+    savedBills.push(billObj);
+    safeSet('savedBills',savedBills);
+
+    currentBill=[]; safeSet('currentBill',currentBill);
+    document.getElementById('customerName').value=''; document.getElementById('customerPhone').value='';
+    renderBill(); updateSavedInfo(); showToast('Bill saved successfully!');
+    document.getElementById('lastSavedDebug').textContent=`Last saved: ₹${Number(billObj.total).toFixed(2)} at ${billObj.time}`;
+    if(confirm('Bill saved. Open Reports page?')){ window.location.href='reports.html'; }
+  }
+
+  function newBill(){ if(currentBill.length && !confirm('Clear current bill?')) return; currentBill=[]; safeSet('currentBill',currentBill); document.getElementById('customerName').value=''; document.getElementById('customerPhone').value=''; itemInput.value=''; quantityInput.value=''; priceInput.value=''; renderBill(); }
+
+  function debugShow(){ console.log('itemsList',itemsList,'currentBill',currentBill,'savedBills',safeParse('savedBills')); alert('See console for debug info'); }
+
+  function updateSavedInfo(){ const saved = safeParse('savedBills') || []; document.getElementById('savedCount').textContent=saved.length; document.getElementById('savedInfo').style.display=saved.length?'flex':'none'; }
+
+  function openReports(){ window.location.href='reports.html'; }
+
+  renderBill(); updateSavedInfo();
+</script>
+</body>
+</html>

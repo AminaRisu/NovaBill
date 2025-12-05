@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Billing | Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body {
+  margin: 0;
+  background: #fff8f0;
+  font-family: "Poppins", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-box {
+  width: 360px;
+  padding: 25px;
+  background: #fff3d6;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 12px;
+  color: #ffb84d;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background: #ffcc66;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #ffb84d;
+}
+
+.links {
+  text-align: center;
+  margin-top: 12px;
+}
+
+a {
+  color: #d68800;
+  text-decoration: none;
+}
+</style>
+</head>
+
+<body>
+<div class="login-box">
+  <h2>Login</h2>
+
+  {% if messages %}
+  {% for msg in messages %}
+  <p style="color:red; text-align:center;">{{ msg }}</p>
+  {% endfor %}
+  {% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+    <input type="text" name="username" placeholder="Username" required />
+    <input type="password" name="password" placeholder="Password" required />
+    <button type="submit">Login</button>
+  </form>
+
+  <div class="links">
+    <a href="{% url 'forgot' %}">Forgot Password?</a><br>
+    <a href="{% url 'signup' %}">Create New Account</a>
+  </div>
+</div>
+</body>
+</html>

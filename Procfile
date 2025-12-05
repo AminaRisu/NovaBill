@@ -1,0 +1,1 @@
+web: gunicorn smart_billing.wsgi --log-file -

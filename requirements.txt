@@ -1,0 +1,11 @@
+Django>=4.2
+scikit-learn
+pandas
+xhtml2pdf
+django-crispy-forms
+numpy
+joblib
+qrcode[pil]
+gunicorn
+whitenoise
+dj-database-url

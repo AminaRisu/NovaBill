@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smart Billing | Reports</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;font-family:'Poppins',sans-serif;display:flex;background:#fff8f0;color:#333}
+  .sidebar{width:220px;background:#fff3d6;height:100vh;padding:25px 20px;position:fixed;box-shadow:2px 0 8px rgba(0,0,0,.1)}
+  .sidebar h2{color:#ffb84d;font-size:22px;margin-bottom:25px}
+  .sidebar a{display:block;color:#333;text-decoration:none;padding:10px 8px;margin:8px 0;border-radius:6px;font-weight:600;transition:0.3s}
+  .sidebar a:hover{background:#ffe4ad;color:#d68800}
+  .main{margin-left:240px;padding:30px;flex:1}
+  h1{color:#ffb84d;margin-bottom:20px;text-align:center}
+  .buttons{margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap}
+  .buttons button{background:#ffcc66;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:600;transition:0.3s}
+  .buttons button:hover{background:#ffb84d;color:#111}
+  .summary{text-align:right;color:#ff9900;margin-bottom:12px;font-weight:600}
+  .table-container{max-height:500px;overflow-y:auto;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,.08)}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden}
+  th{background:#ffe7b3;padding:14px;text-align:left;color:#333}
+  td{padding:12px;border-bottom:1px solid #eee;font-size:14px;color:#333}
+  tr:nth-child(even){background:#fff8ee}
+  tr:hover{background:#fff3d6;cursor:pointer}
+  /* Modal */
+  .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);justify-content:center;align-items:center;z-index:100}
+  .modal-content{background:#fff8f0;padding:20px;border-radius:10px;max-width:600px;width:90%;max-height:80%;overflow:auto;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+  .modal-content h2{color:#ffb84d;margin-bottom:10px;text-align:center}
+  .modal-content table{width:100%;margin-top:10px;border-collapse:collapse}
+  .modal-content table th{background:#ffe7b3;color:#333;padding:8px;text-align:left}
+  .modal-content table td{color:#333;padding:6px;border-bottom:1px solid #eee}
+  .close-btn{background:#ffcc66;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;margin-top:12px;display:block;margin-left:auto;font-weight:600}
+  .close-btn:hover{background:#ffb84d;color:#111}
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Dashboard</h2>
+    <a href="billing.html">Billing</a>
+    <a href="items.html">Items</a>
+    <a href="reports.html">Reports</a>
+    <a href="settings.html">Settings</a>
+  </div>
+
+  <div class="main">
+    <h1>Saved Bills Report</h1>
+
+    <div class="buttons">
+      <button onclick="loadBills()">Refresh</button>
+      <button onclick="clearAllBills()">Clear All</button>
+    </div>
+
+    <div class="summary" id="billCount">0 bills</div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Bill No</th>
+            <th>Date & Time</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="billsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal for bill details -->
+  <div class="modal" id="billModal">
+    <div class="modal-content">
+      <h2>Bill Details</h2>
+      <div id="modalCustomer"></div>
+      <div id="modalPhone"></div>
+      <div id="modalTime"></div>
+      <table>
+        <thead>
+          <tr><th>Sl</th><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+        </thead>
+        <tbody id="modalBody"></tbody>
+      </table>
+      <div class="summary" id="modalTotal"></div>
+      <button class="close-btn" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+<script>
+  function safeParse(key){ try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; } }
+  function safeSet(key,val){ try{ localStorage.setItem(key,JSON.stringify(val)); }catch(e){} }
+
+  function loadBills(){
+    const billsBody=document.getElementById('billsBody');
+    billsBody.innerHTML='';
+    const savedBills = safeParse('savedBills');
+    savedBills.forEach((bill, idx)=>{
+      const tr=document.createElement('tr');
+      const total = isNaN(Number(bill.total)) ? 0 : Number(bill.total).toFixed(2);
+      tr.innerHTML=`<td>B${idx+1}</td><td>${bill.time}</td><td>${bill.customerName}</td><td>${bill.customerPhone}</td><td>₹${total}</td>`;
+      tr.onclick = ()=> showBillDetails(bill, idx+1);
+      billsBody.appendChild(tr);
+    });
+    document.getElementById('billCount').textContent = `${savedBills.length} bills`;
+  }
+
+  function clearAllBills(){
+    if(confirm('Are you sure you want to delete all bills?')){
+      localStorage.removeItem('savedBills');
+      loadBills();
+    }
+  }
+
+  function showBillDetails(bill, number){
+    document.getElementById('billModal').style.display='flex';
+    document.getElementById('modalCustomer').textContent = 'Customer: '+bill.customerName;
+    document.getElementById('modalPhone').textContent = 'Phone: '+bill.customerPhone;
+    document.getElementById('modalTime').textContent = 'Time: '+bill.time;
+
+    const tbody = document.getElementById('modalBody');
+    tbody.innerHTML='';
+    bill.billData.forEach((item, idx)=>{
+      const price = isNaN(Number(item.price)) ? 0 : Number(item.price).toFixed(2);
+      const total = isNaN(Number(item.price)*Number(item.quantity)) ? 0 : (Number(item.price)*Number(item.quantity)).toFixed(2);
+      const tr = document.createElement('tr');
+      tr.innerHTML=`<td>${idx+1}</td><td>${item.name}</td><td>${item.quantity}</td><td>₹${price}</td><td>₹${total}</td>`;
+      tbody.appendChild(tr);
+    });
+    const grand = bill.billData.reduce((s,i)=>s + (isNaN(Number(i.price))?0:Number(i.price)*Number(i.quantity)),0);
+    document.getElementById('modalTotal').textContent='Grand Total: ₹'+grand.toFixed(2);
+  }
+
+  function closeModal(){
+    document.getElementById('billModal').style.display='none';
+  }
+
+  window.onload=loadBills;
+</script>
+</body>
+</html>
